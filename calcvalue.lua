@@ -52,9 +52,7 @@ function module.new_calcvalue(name, metatype)
 end
 
 -- Create a calcvalue representing a variable.
---
--- TODO: this is misnamed.
-function module.const(name)
+function module.var(name)
     local this = module.new_calcvalue(name, 'var')
 
     function this.equals(other)

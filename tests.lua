@@ -28,7 +28,7 @@ end
 local calcvalue = require 'calcvalue'
 
 local new_calcvalue = calcvalue.new_calcvalue
-local const = calcvalue.const
+local var = calcvalue.var
 local forall = calcvalue.forall
 local lambda = calcvalue.lambda
 local prelude = calcvalue.prelude
@@ -59,33 +59,33 @@ assert_eq(tostring(prelude.type), 'Type')
 -- test that in context "a : Type", a : Type
 local ctx = new_context()
 ctx = ctx.push('a', prelude.type)
-assert_eq(typecheck(const('a'), ctx), prelude.type)
+assert_eq(typecheck(var('a'), ctx), prelude.type)
 
 -- test that in context "a : Type", it is false that a : a
-assert_eq(typecheck(const('a'), ctx) == const('a'), false)
+assert_eq(typecheck(var('a'), ctx) == var('a'), false)
 
 -- test that in context "a : Type, x : a", a : Type and x : a
-ctx = ctx.push('x', const('a'))
-assert_eq(typecheck(const('a'), ctx), prelude.type)
-assert_eq(typecheck(const('x'), ctx), const('a'))
+ctx = ctx.push('x', var('a'))
+assert_eq(typecheck(var('a'), ctx), prelude.type)
+assert_eq(typecheck(var('x'), ctx), var('a'))
 
 -- test that in context "a : Type, x : a", it is false that x : x
-assert_eq(typecheck(const('x'), ctx) == const('x'), false)
+assert_eq(typecheck(var('x'), ctx) == var('x'), false)
 
 -- test that in context "push : Type, x : push", x : push
 ctx = new_context()
 ctx = ctx.push('push', prelude.type)
-ctx = ctx.push('x', const('push'))
-assert_eq(typecheck(const('x'), ctx), const('push'))
+ctx = ctx.push('x', var('push'))
+assert_eq(typecheck(var('x'), ctx), var('push'))
 
--- test that a constant has no type if there's no context
-assert_eq(typecheck(const('x')), nil)
+-- test that a varant has no type if there's no context
+assert_eq(typecheck(var('x')), nil)
 
--- test that the type of Type isn't a const called "Type"
-assert_eq(typecheck(prelude.type) == const('Type'), false)
+-- test that the type of Type isn't a var called "Type"
+assert_eq(typecheck(prelude.type) == var('Type'), false)
 
--- test that a const called "Type" isn't Type
-assert_eq(const('Type') == prelude.type, false)
+-- test that a var called "Type" isn't Type
+assert_eq(var('Type') == prelude.type, false)
 
 -- test that Type "equals" itself
 assert_eq(prelude.type.equals(prelude.type), true)
@@ -95,7 +95,7 @@ ctx = new_context()
 assert_eq(#ctx, 0)
 ctx = ctx.push('a', prelude.type)
 assert_eq(#ctx, 1)
-ctx = ctx.push('x', const('a'))
+ctx = ctx.push('x', var('a'))
 assert_eq(#ctx, 2)
 
 -- test that contexts don't update in place
@@ -108,16 +108,16 @@ local forall_a_type = forall('a', prelude.type, prelude.type)
 assert_eq(typecheck(forall_a_type), prelude.type)
 
 -- test that (lambda (a : Type), a) : forall (a : Type, Type)
-local lambda_a_a = lambda('a', prelude.type, const('a'))
+local lambda_a_a = lambda('a', prelude.type, var('a'))
 assert_eq(typecheck(lambda_a_a), forall_a_type)
 
 -- test that it is false that (lambda (a : Type), a) : forall (a : Type, a)
-local forall_a_a = forall('a', prelude.type, const('a'))
+local forall_a_a = forall('a', prelude.type, var('a'))
 assert_eq(typecheck(lambda_a_a) == forall_a_a, false)
 
 -- test that (lambda (a : Type) (x : a), x) : forall (a : Type) (x : a), a
-local lambda_a_x_x = lambda('a', prelude.type, lambda('x', const('a'), const('x')))
-local forall_a_x_a = forall('a', prelude.type, forall('x', const('a'), const('a')))
+local lambda_a_x_x = lambda('a', prelude.type, lambda('x', var('a'), var('x')))
+local forall_a_x_a = forall('a', prelude.type, forall('x', var('a'), var('a')))
 local type_result = typecheck(lambda_a_x_x)
 assert_eq(type_result, forall_a_x_a)
 

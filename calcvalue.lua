@@ -10,6 +10,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+require 'freeze'
+
 local module = {}
 
 local calcvalue_metatable = {}
@@ -57,6 +59,21 @@ function module.const(name)
     end
 
     return this
+end
+
+local prelude = {}
+module.prelude = prelude
+
+prelude.type = module.new_calcvalue()
+prelude.type.name = 'Type'
+prelude.type.metatype = 'Type'
+
+function prelude.type.equals(other)
+    return other.metatype == 'Type'
+end
+
+function prelude.type.type_in_context(ctx)
+    return prelude.type
 end
 
 return module

@@ -25,31 +25,11 @@ local calcvalue = require 'calcvalue'
 
 local new_calcvalue = calcvalue.new_calcvalue
 local const = calcvalue.const
+local prelude = calcvalue.prelude
 
-local prelude = {}
+local context = require 'context'
 
-prelude.type = new_calcvalue()
-prelude.type.name = 'Type'
-prelude.type.metatype = 'Type'
-
-function prelude.type.equals(other)
-    return other.metatype == 'Type'
-end
-
-function prelude.type.type_in_context(ctx)
-    return prelude.type
-end
-
-local function new_context()
-    local ctx = {items = {}}
-
-    function ctx.push(name, type)
-        ctx.items[name] = type
-        return ctx
-    end
-
-    return ctx
-end
+local new_context = context.new_context
 
 local function typecheck(value, ctx)
     local ctx = ctx or new_context()

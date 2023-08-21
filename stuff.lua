@@ -8,6 +8,19 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
+require 'freeze'
+
+-- Test that trying to create a global is an error.
+local function create_global()
+    x = 'hello'
+end
+
+local create_global_succeeded = pcall(create_global)
+
+if create_global_succeeded then
+    error "creating globals is permitted when it shouldn't be"
+end
+
 local calcvalue = require 'calcvalue'
 
 local new_calcvalue = calcvalue.new_calcvalue
@@ -27,12 +40,7 @@ function prelude.type.type_in_context(ctx)
     return prelude.type
 end
 
-function typecheck(value, ctx)
-    local ctx = ctx or new_context()
-    return value.type_in_context(ctx)
-end
-
-function new_context()
+local function new_context()
     local ctx = {items = {}}
 
     function ctx.push(name, type)
@@ -43,7 +51,12 @@ function new_context()
     return ctx
 end
 
-function assert_eq(actual, expected)
+local function typecheck(value, ctx)
+    local ctx = ctx or new_context()
+    return value.type_in_context(ctx)
+end
+
+local function assert_eq(actual, expected)
     if actual ~= expected then
         local message = string.format('assertion error: found %s %s but expected %s %s',
             type(actual), actual, type(expected), expected)

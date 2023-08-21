@@ -14,15 +14,31 @@ require 'freeze'
 
 local module = {}
 
-function module.new_context()
-    local ctx = {items = {}}
+local context_mt = {}
 
-    function ctx.push(name, type)
-        ctx.items[name] = type
-        return ctx
+function context_mt.__len(this)
+    return this.count
+end
+
+function module.new_context()
+    local this = {items = {}, count = 0}
+
+    setmetatable(this, context_mt)
+
+    function this.push(name, type)
+        local new = module.new_context()
+
+        for key, value in pairs(this.items) do
+            new.items[key] = value
+        end
+
+        new.items[name] = type
+        new.count = this.count + 1
+
+        return new
     end
 
-    return ctx
+    return this
 end
 
 return module

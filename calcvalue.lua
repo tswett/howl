@@ -44,7 +44,7 @@ function module.new_calcvalue(name, metatype)
         error('metatype must be a string', 2)
     end
 
-    local result = {name = name, metatype = metatype}
+    local result = {is_calcvalue = true, name = name, metatype = metatype}
 
     setmetatable(result, calcvalue_metatable)
 
@@ -85,8 +85,14 @@ end
 function module.forall(index, domain, codomain)
     local this = module.new_calcvalue('forall', 'forall')
 
+    if not codomain.is_calcvalue then
+        error('codomain must be a calcvalue', 2)
+    end
+
+    this.codomain = codomain
+
     function this.equals(other)
-        return other.metatype == 'forall'
+        return other.metatype == 'forall' and this.codomain == other.codomain
     end
 
     function this.type_in_context(ctx)
@@ -101,7 +107,15 @@ function module.lambda(param, domain, body)
     local this = module.new_calcvalue('lambda', 'lambda')
 
     function this.type_in_context(ctx)
-        return module.forall(param, domain, prelude.type)
+        local new_ctx = ctx.push(param, domain)
+
+        local body_type = body.type_in_context(new_ctx)
+
+        if type(body_type) ~= 'table' or not body_type.is_calcvalue then
+            error "couldn't find a type for this body"
+        end
+
+        return module.forall(param, domain, body_type)
     end
 
     return this

@@ -111,4 +111,14 @@ assert_eq(typecheck(forall_a_type), prelude.type)
 local lambda_a_a = lambda('a', prelude.type, const('a'))
 assert_eq(typecheck(lambda_a_a), forall_a_type)
 
+-- test that it is false that (lambda (a : Type), a) : forall (a : Type, a)
+local forall_a_a = forall('a', prelude.type, const('a'))
+assert_eq(typecheck(lambda_a_a) == forall_a_a, false)
+
+-- test that (lambda (a : Type) (x : a), x) : forall (a : Type) (x : a), a
+local lambda_a_x_x = lambda('a', prelude.type, lambda('x', const('a'), const('x')))
+local forall_a_x_a = forall('a', prelude.type, forall('x', const('a'), const('a')))
+local type_result = typecheck(lambda_a_x_x)
+assert_eq(type_result, forall_a_x_a)
+
 print 'All tests passed.'

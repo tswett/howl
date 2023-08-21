@@ -29,6 +29,8 @@ local calcvalue = require 'calcvalue'
 
 local new_calcvalue = calcvalue.new_calcvalue
 local const = calcvalue.const
+local forall = calcvalue.forall
+local lambda = calcvalue.lambda
 local prelude = calcvalue.prelude
 
 local context = require 'context'
@@ -100,5 +102,13 @@ assert_eq(#ctx, 2)
 ctx = new_context()
 ctx.push('a', prelude.type)
 assert_eq(#ctx, 0)
+
+-- test that (forall (a : Type), Type) : Type
+local forall_a_type = forall('a', prelude.type, prelude.type)
+assert_eq(typecheck(forall_a_type), prelude.type)
+
+-- test that (lambda (a : Type), a) : forall (a : Type, Type)
+local lambda_a_a = lambda('a', prelude.type, const('a'))
+assert_eq(typecheck(lambda_a_a), forall_a_type)
 
 print 'All tests passed.'

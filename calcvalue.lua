@@ -35,9 +35,19 @@ function calcvalue_metatable.__index(this, key)
 end
 
 -- Create a calcvalue.
-function module.new_calcvalue()
-    local result = {}
+function module.new_calcvalue(name, metatype)
+    if type(name) ~= 'string' then
+        error('name must be a string', 2)
+    end
+
+    if type(metatype) ~= 'string' then
+        error('metatype must be a string', 2)
+    end
+
+    local result = {name = name, metatype = metatype}
+
     setmetatable(result, calcvalue_metatable)
+
     return result
 end
 
@@ -45,13 +55,10 @@ end
 --
 -- TODO: this is misnamed.
 function module.const(name)
-    local this = module.new_calcvalue()
-
-    this.name = name
-    this.metatype = 'const'
+    local this = module.new_calcvalue(name, 'var')
 
     function this.equals(other)
-        return other.metatype == 'const' and this.name == other.name
+        return other.metatype == 'var' and this.name == other.name
     end
 
     function this.type_in_context(ctx)
@@ -64,9 +71,7 @@ end
 local prelude = {}
 module.prelude = prelude
 
-prelude.type = module.new_calcvalue()
-prelude.type.name = 'Type'
-prelude.type.metatype = 'Type'
+prelude.type = module.new_calcvalue('Type', 'Type')
 
 function prelude.type.equals(other)
     return other.metatype == 'Type'
@@ -74,6 +79,32 @@ end
 
 function prelude.type.type_in_context(ctx)
     return prelude.type
+end
+
+-- Create a calcvalue representing a dependent product.
+function module.forall(index, domain, codomain)
+    local this = module.new_calcvalue('forall', 'forall')
+
+    function this.equals(other)
+        return other.metatype == 'forall'
+    end
+
+    function this.type_in_context(ctx)
+        return prelude.type
+    end
+
+    return this
+end
+
+-- Create a calcvalue representing a lambda binding.
+function module.lambda(param, domain, body)
+    local this = module.new_calcvalue('lambda', 'lambda')
+
+    function this.type_in_context(ctx)
+        return module.forall(param, domain, prelude.type)
+    end
+
+    return this
 end
 
 return module

@@ -8,33 +8,12 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-calcvalue_metatable = {}
+local calcvalue = require 'calcvalue'
 
-function calcvalue_metatable.__tostring(value)
-    local name = value.name
-    if type(name) == 'string' then
-        return value.name
-    else
-        error("this value doesn't have a name assigned")
-    end
-end
+local new_calcvalue = calcvalue.new_calcvalue
+local const = calcvalue.const
 
-function calcvalue_metatable.__eq(this, other)
-    return this.equals(other)
-end
-
-function calcvalue_metatable.__index(this, key)
-    local message = string.format("the key %s isn't present in this calcvalue", key)
-    error(message, 2)
-end
-
-function new_calcvalue()
-    local result = {}
-    setmetatable(result, calcvalue_metatable)
-    return result
-end
-    
-prelude = {}
+local prelude = {}
 
 prelude.type = new_calcvalue()
 prelude.type.name = 'Type'
@@ -46,23 +25,6 @@ end
 
 function prelude.type.type_in_context(ctx)
     return prelude.type
-end
-
-function const(name)
-    local this = new_calcvalue()
-
-    this.name = name
-    this.metatype = 'const'
-
-    function this.equals(other)
-        return other.metatype == 'const' and this.name == other.name
-    end
-
-    function this.type_in_context(ctx)
-        return ctx.items[name]
-    end
-
-    return this
 end
 
 function typecheck(value, ctx)
@@ -88,6 +50,8 @@ function assert_eq(actual, expected)
         error(message, 2)
     end
 end
+
+print 'Starting tests...'
 
 -- test that Type : Type
 assert_eq(typecheck(prelude.type), prelude.type)
@@ -127,3 +91,5 @@ assert_eq(const('Type') == prelude.type, false)
 
 -- test that Type "equals" itself
 assert_eq(prelude.type.equals(prelude.type), true)
+
+print 'All tests passed.'
